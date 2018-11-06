@@ -1,0 +1,1 @@
+Since I was unable to get the Pi code to work do to timing issues with the pi, I used the STM32L476G board to try to correct the timing issues with Systick Interrupts.
