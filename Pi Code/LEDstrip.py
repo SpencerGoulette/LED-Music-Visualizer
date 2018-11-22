@@ -5,19 +5,51 @@ import board
 sys.path.insert(0, '/usr/local/lib/python3.5/dist-packages')
 import neopixel
 
-pixel_number = 255
+pixel_number = 300
 pin_number = board.D18
 light_delay = 0.00001
 
-pixels = neopixel.NeoPixel(pin_number, pixel_number)
+pixel_list = []
+bounceback_list = []
+
+pixels = neopixel.NeoPixel(pin_number, pixel_number, brightness=0.1, auto_write=False, pixel_order=neopixel.GRB)
 
 def rainbow_run(delay):
-    for i in range(0,8):
-        for j in range(pixel_number):
-            change = i*31;
-            pixels[j] = (change,0,255-change)
-            pixels.show()
-            time.sleep(delay)
+    continuous_run('r')
+    time.sleep(delay)
+    continuous_run('o')
+    time.sleep(delay)
+    continuous_run('y')
+    time.sleep(delay)
+    continuous_run('g')
+    time.sleep(delay)
+    continuous_run('t')
+    time.sleep(delay)
+    continuous_run('b')
+    time.sleep(delay)
+    continuous_run('v')
+    time.sleep(delay)
+    continuous_run('p')
+    time.sleep(delay)
+
+def rainbow_bounceback(delay):
+    bounceback_run('r')
+    time.sleep(delay)
+    bounceback_run('o')
+    time.sleep(delay)
+    bounceback_run('y')
+    time.sleep(delay)
+    bounceback_run('g')
+    time.sleep(delay)
+    bounceback_run('t')
+    time.sleep(delay)
+    bounceback_run('b')
+    time.sleep(delay)
+    bounceback_run('v')
+    time.sleep(delay)
+    bounceback_run('p')
+    time.sleep(delay)
+
 
 def rainbow_flash(delay):
     stillChanging = True
@@ -61,41 +93,69 @@ def rainbow_flash(delay):
 
 def light_run(color):
     for i in range(pixel_number):
-        if color == 'r':
-            pixels[i] = (255,0,0)
-        elif color == 'o':
-            pixels[i] = (255,125,0)
-        elif color == 'y':
-            pixels[i] = (255,233,0)
-        elif color == 'g':
-            pixels[i] = (50,255,0)
-        elif color == 't':
-            pixels[i] = (0,244,244)
-        elif color == 'b':
-            pixels[i] = (0,0,255)
-        elif color == 'v':
-            pixels[i] = (107,0,244)
-        elif color == 'p':
-            pixels[i] = (244,0,177)
+        color = hex_color(color)
+        pixels[i] = color
         if i > 0:
-            pixels[i - 1] = (0,0,0) 
+            pixels[i - 1] = (0,0,0)
+        pixels.show()
         time.sleep(0.01)
+
+def hex_color(color):
+    if color == 'r':
+        return (255,0,0)
+    elif color == 'o':
+        return (255,108,0)
+    elif color == 'y':
+        return (255,249,46)
+    elif color == 'g':
+        return (50,255,0)
+    elif color == 't':
+        return (0,244,244)
+    elif color == 'b':
+        return (0,0,255)
+    elif color == 'v':
+        return (107,0,244)
+    elif color == 'p':
+        return (244,0,177)
+    elif color == 'br':
+        return (112,73,25)
+    elif color == 'w':
+        return (255,255,255)
+    else:
+        return (0,0,0)
+
+def continuous_run(color):
+    color = hex_color(color)
+    pixel_list.insert(0,color)
+    if len(pixel_list) >= pixel_number:
+        pixel_list.pop()
+    for i in range(len(pixel_list)):
+        pixels[len(pixel_list) - i - 1] = pixel_list[len(pixel_list) - i - 1]
+    pixels.show()
+
+def bounceback_run(color):
+    color = hex_color(color)
+    bounceback_list.insert(0,color)
+    if len(bounceback_list) >= pixel_number:
+        for i in range(pixel_number):
+            del bounceback_list[0]
+            for j in range(pixel_number):
+                if j < len(bounceback_list):
+                    pixels[j] = bounceback_list[j]
+                if j >= len(bounceback_list):
+                    pixels[j] = (0,0,0)
+            pixels.show()
+    if len(bounceback_list) < pixel_number:
+        for i in range(len(bounceback_list)):
+            pixels[len(bounceback_list) - i - 1] = bounceback_list[len(bounceback_list) - i - 1]
+        pixels.show()
+        
 
 def clear():
     pixels.fill((0,0,0))
+    pixels.show()
 
+clear()
 while True:
-    clear()
-    time.sleep(10)
-    light_run('r')
-    light_run('o')
-    light_run('y')
-    light_run('g')
-    light_run('t')
-    light_run('b')
-    light_run('v')
-    light_run('p')
-    time.sleep(1)
-    rainbow_flash(light_delay)
-    time.sleep(1)
+    rainbow_bounceback(light_delay)
 
