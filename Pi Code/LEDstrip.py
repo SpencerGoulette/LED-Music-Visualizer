@@ -34,8 +34,8 @@ def readadc(adcpin, clockpin, mosipin, misopin, cspin):
         return -1
     GPIO.output(cspin, True)
 
-    GPIO.output(clockpin, False)
-    GPIO.output(cspin, False)
+    GPIO.output(clockpin, False)    # Start clock low
+    GPIO.output(cspin, False)       # Bring Chip Select low
 
     commandout = adcpin
     commandout |= 0x18
@@ -50,7 +50,7 @@ def readadc(adcpin, clockpin, mosipin, misopin, cspin):
         GPIO.output(clockpin, False)
 
     adcout = 0
-
+    # Read in one empty bit, one null bit and 10 ADC bits
     for i in range(12):
         GPIO.output(clockpin, True)
         GPIO.output(clockpin, False)
@@ -60,38 +60,38 @@ def readadc(adcpin, clockpin, mosipin, misopin, cspin):
 
     GPIO.output(cspin, True)
 
-    adcout >>= 1
+    adcout >>= 1    # First bit is 'null' so drop it
     adcout = adcout * 3.3 / 1023
     return adcout
 
 # Changes color of LEDs to blue, purple, white based off voltages
 def volt_color(volt):
-    volt = volt * 765 / 3.3
-    if volt <= 255:
+    volt = volt * 765 / 3.3 # Converts voltage range to color change range
+    if volt <= 255:     # Blue
         return (0,0,math.floor(volt))
-    elif (volt > 255) and (volt <= 509):
+    elif (volt > 255) and (volt <= 509):    # Purple
         return (math.floor(volt - 255),0,255)
-    elif (volt > 510) and (volt <= 764):
+    elif (volt > 510) and (volt <= 764):    # White
         return (255,math.floor(volt - 510),255)
     else:
         return (255,255,255)
 
 # Changes color of LEDs to a multitude of colors based off voltages
 def volt_color_advanced(volt):
-    volt = volt * 1375 / 3.3
-    if volt <= 255:
+    volt = volt * 1375 / 3.3    # Converts voltage range to color change range
+    if volt <= 255: # Light Blue
         return (math.floor(volt * 31 / 255),math.floor(volt),math.floor(volt))
-    elif (volt > 255) and (volt <= 479):
+    elif (volt > 255) and (volt <= 479):    # Blue
         return (31,255-math.floor(volt - 255),255)
-    elif (volt > 479) and (volt <= 703):
+    elif (volt > 479) and (volt <= 703):    # Purple
         return (31 + math.floor(volt - 479),31,255)
-    elif (volt > 703) and (volt <= 927):
+    elif (volt > 703) and (volt <= 927):    # Red
         return (255,31,255 - math.floor(volt - 703))
-    elif (volt > 927) and (volt <= 1151):
+    elif (volt > 927) and (volt <= 1151):   # Orange
         return (255,31 + math.floor(volt - 927),31)
-    elif (volt > 1151) and (volt <= 1375):
+    elif (volt > 1151) and (volt <= 1375):  # Yellow
         return (255,255,31 + math.floor(volt - 1151))
-    else:
+    else:   # White
         return (255,255,255)
 
 # Sends rainbow colors down the LED strip
@@ -143,7 +143,7 @@ def rainbow_flash(delay):
     bright = 0.05
     colorChanger = 0
     while stillChanging:
-        if incBright:
+        if incBright:  # Increase brightness and then decrease
             bright += 0.01
             if bright > 0.95:
                 incBright = False
@@ -151,27 +151,27 @@ def rainbow_flash(delay):
             bright -= 0.01
             if bright < 0.05:
                 incBright = True
-        if colorChanger == 0:
+        if colorChanger == 0: # Increase Red
             r = r + 1
             if r >= 254:
                 colorChanger += 1
-        elif colorChanger == 1:
+        elif colorChanger == 1: # Decrease Blue
             b = b - 1
             if b <= 1:
                 colorChanger += 1
-        elif colorChanger == 2:
+        elif colorChanger == 2: # Increase Green
             g = g + 1
             if g >= 254:
                 colorChanger += 1
-        elif colorChanger == 3:
+        elif colorChanger == 3: # Decrease Red
             r = r - 1
             if r <= 1:
                 colorChanger += 1
-        elif colorChanger == 4:
+        elif colorChanger == 4: # Increase Blue
             b = b + 1
             if b >= 254:
                 colorChanger += 1
-        elif colorChanger == 5:
+        elif colorChanger == 5: # Decrease Green
             g = g - 1
             if loopDone == True:
                 stillChanging = False
@@ -189,9 +189,9 @@ def rainbow_flash(delay):
 def light_run(color):
     for i in range(pixel_number):
         color = hex_color(color)
-        pixels[i] = color
+        pixels[i] = color   # Set Color to current LED
         if i > 0:
-            pixels[i - 1] = (0,0,0)
+            pixels[i - 1] = (0,0,0) # Set last LED off
         pixels.show()
         time.sleep(0.01)
 
@@ -223,28 +223,28 @@ def hex_color(color):
 # Sends a chain of colors down the LED and keeps sending them using a list
 def continuous_run(color):
     color = hex_color(color)
-    pixel_list.insert(0,color)
+    pixel_list.insert(0,color) # Insert new color into list
     if len(pixel_list) >= pixel_number:
-        pixel_list.pop()
-    for i in range(len(pixel_list)):
+        pixel_list.pop()    # To make continuous pop from list if full
+    for i in range(len(pixel_list)):    # Shift all colors and add new color
         pixels[len(pixel_list) - i - 1] = pixel_list[len(pixel_list) - i - 1]
     pixels.show()
 
 # Sends a chain of colors down the LED and then runs back using a list
 def bounceback_run(color):
     color = hex_color(color)
-    bounceback_list.insert(0,color)
-    if len(bounceback_list) >= pixel_number:
+    bounceback_list.insert(0,color) # Insert new color into list
+    if len(bounceback_list) >= pixel_number:    # If list is full
         for i in range(pixel_number):
-            del bounceback_list[0]
-            for j in range(pixel_number):
+            del bounceback_list[0]  # Delete color
+            for j in range(pixel_number):   # Update Colors on LEDs
                 if j < len(bounceback_list):
                     pixels[j] = bounceback_list[j]
                 if j >= len(bounceback_list):
                     pixels[j] = (0,0,0)
             pixels.show()
-    if len(bounceback_list) < pixel_number:
-        for i in range(len(bounceback_list)):
+    if len(bounceback_list) < pixel_number: # If list is not full
+        for i in range(len(bounceback_list)):   # Shift colors and add new color
             pixels[len(bounceback_list) - i - 1] = bounceback_list[len(bounceback_list) - i - 1]
         pixels.show()    
 
@@ -268,6 +268,6 @@ GPIO.setup(SPICS, GPIO.OUT)
 # The higher the frequency and volume, the brighter the colors
 while True:
     fvolt = readadc(1,SPICLK,SPIMOSI,SPIMISO,SPICS)
-    pixels.fill(volt_color_advanced(fvolt))
+    pixels.fill(volt_color(fvolt))
     pixels._brightness = fvolt / 5
     pixels.show()
