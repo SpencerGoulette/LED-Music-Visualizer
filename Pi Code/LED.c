@@ -19,6 +19,7 @@ void ndelay(int time);
 #define tHigh 2
 #define tLow 1
 
+// Currently just checks to see how fast the GPIOs can be toggled high and low to send the 24 bits address for colors to the LEDs
 int main(void)
 {
 	gpio_enable(17);
