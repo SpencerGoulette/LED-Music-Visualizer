@@ -1,1 +1,0 @@
-Unfortunately, the Raspberry Pi doesn't seem to be able to toggle the output of the GPIO fast enough for the LED. When measuring how fast the Pi would toggle the GPIO outputs, the time was around 150us to toggle on and then off. A time of 250ns was wanted, so the actual time was almost three magnitudes off from the desired value.
